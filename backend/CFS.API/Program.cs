@@ -1,6 +1,22 @@
+using CFS.BAL.Contracts;
+using CFS.BAL.Services;
+using CFS.DAL.Contracts;
+using CFS.DAL.Data;
+using CFS.DAL.Repositories;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+//Database
+var connectionString = builder.Configuration.GetConnectionString("FCConnectionString");
+builder.Services.AddDbContext<FreshCoffeeContext>(options => options.UseNpgsql(connectionString));
+
+//DAL
+builder.Services.AddScoped<IUserRepository, UserRepository>();  
+
+//BAL
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
