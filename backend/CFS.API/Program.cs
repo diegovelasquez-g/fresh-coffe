@@ -3,6 +3,7 @@ using CFS.BAL.Services;
 using CFS.DAL.Contracts;
 using CFS.DAL.Data;
 using CFS.DAL.Repositories;
+using CFS.DTO.Mappers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,7 +13,10 @@ var connectionString = builder.Configuration.GetConnectionString("FCConnectionSt
 builder.Services.AddDbContext<FreshCoffeeContext>(options => options.UseNpgsql(connectionString));
 
 //DAL
-builder.Services.AddScoped<IUserRepository, UserRepository>();  
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+//DTO   
+builder.Services.AddAutoMapper(typeof(UserMappingsProfile));
 
 //BAL
 builder.Services.AddScoped<IUserService, UserService>();

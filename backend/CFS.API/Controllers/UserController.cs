@@ -1,5 +1,5 @@
 ﻿using CFS.BAL.Contracts;
-using CFS.DAL.Models;
+using CFS.DTO.Request;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CFS.API.Controllers
@@ -17,9 +17,9 @@ namespace CFS.API.Controllers
 
         [HttpPost]
         [Route("CreateUser")]
-        public async Task<IActionResult> CreateUser([FromBody] User user)
+        public async Task<IActionResult> CreateUser([FromBody] NewUserRequestDto newNewUser)
         {
-            var result = await _userService.CreateUserAsync(user);
+            var result = await _userService.CreateUserAsync(newNewUser);
             if(result)
                 return Ok("Usuario registrado con éxito.");
             return BadRequest("Ha ocurrido un error, no se pudo registrar el usuario.");
@@ -27,9 +27,9 @@ namespace CFS.API.Controllers
 
         [HttpPut]
         [Route("UpdateUser/{userId}")]
-        public async Task<IActionResult> UpdateUser(int userId, [FromBody] User requestUser)
+        public async Task<IActionResult> UpdateUser(int userId, [FromBody] EditUserRequestDto updatedNewUser)
         {
-            var result = await _userService.UpdateUserAsync(userId,requestUser);
+            var result = await _userService.UpdateUserAsync(userId, updatedNewUser);
             if(result)
                 return Ok("Usuario actualizado con éxito.");
             return BadRequest("Ha ocurrido un error, no se pudo actualizar el usuario.");
@@ -47,9 +47,9 @@ namespace CFS.API.Controllers
 
         [HttpPost]
         [Route("Login")]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto userCredentials)
         {
-            var result = await _userService.LoginAsync(email, password);
+            var result = await _userService.LoginAsync(userCredentials);
             if(result)
                 return Ok("Usuario autenticado con éxito.");
             return BadRequest("Contraseña o email incorrecto.");

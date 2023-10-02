@@ -1,6 +1,8 @@
-﻿using CFS.BAL.Contracts;
+﻿using AutoMapper;
+using CFS.BAL.Contracts;
 using CFS.DAL.Contracts;
 using CFS.DAL.Models;
+using CFS.DTO.Request;
 
 namespace CFS.BAL.Services;
 
@@ -8,32 +10,39 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasherService _passwordHasherService;
+    private readonly IMapper _mapper;
 
-    public UserService(IUserRepository userRepository, IPasswordHasherService passwordHasherService)
+    public UserService(IUserRepository userRepository, IPasswordHasherService passwordHasherService, IMapper mapper)
     {
         _userRepository = userRepository;
         _passwordHasherService = passwordHasherService;
+        _mapper = mapper;
     }
 
-    public async Task<bool> CreateUserAsync(User newUser)
+    public async Task<bool> CreateUserAsync(NewUserRequestDto newNewUser)
     {
-        newUser.CreateDate = DateTime.Now;
-        newUser.Password = _passwordHasherService.Hash(newUser.Password);
+        var user = _mapper.Map<User>(newNewUser);
+        user.CreateDate = DateTime.Now;
+        user.Password = _passwordHasherService.Hash(user.Password);
 
-        var isSuccess = await _userRepository.CreateUserAsync(newUser);
+        var isSuccess = await _userRepository.CreateUserAsync(user);
         return isSuccess;
     }
 
-    public async Task<bool> UpdateUserAsync(int userId,User updatedUser)
+    public async Task<bool> UpdateUserAsync(int userId, EditUserRequestDto updatedNewUser)
     {
         var existingUser = await _userRepository.GetUserByIdAsync(userId);
         if (existingUser == null)
             return false;
 
-        existingUser.UserName = updatedUser.UserName;
-        existingUser.Email = updatedUser.Email;
-        //existingUser.RoleId = updatedUser.RoleId; Todo: Revisarlo
-        existingUser.UpdateBy = updatedUser.UpdateBy;
+        if(!string.IsNullOrEmpty(updatedNewUser.UserName))
+            existingUser.UserName = updatedNewUser.UserName;
+
+        if (!string.IsNullOrEmpty(updatedNewUser.Email))
+            existingUser.Email = updatedNewUser.Email;
+
+        //existingUser.RoleId = updatedNewUser.RoleId; Todo: Revisarlo
+        existingUser.UpdateBy = updatedNewUser.UpdateBy;
         existingUser.UpdateDate = DateTime.Now;
 
         var isSuccess = await _userRepository.UpdateUserAsync(existingUser);
@@ -53,13 +62,13 @@ public class UserService : IUserService
         return isSuccess;
     }
 
-    public async Task<bool> LoginAsync(string email, string password)
+    public async Task<bool> LoginAsync(LoginRequestDto userCredentials)
     {
-        var userToAuth = await _userRepository.GetUserByEmailAsync(email);
+        var userToAuth = await _userRepository.GetUserByEmailAsync(userCredentials.Email);
         if (userToAuth is null)
             return false;
 
-        var isPasswordValid = _passwordHasherService.Verify(userToAuth.Password, password);
+        var isPasswordValid = _passwordHasherService.Verify(userToAuth.Password, userCredentials.Password);
         return isPasswordValid;
     }
 
