@@ -1,5 +1,6 @@
 ﻿using CFS.DAL.Models;
 using CFS.DTO.Request;
+using CFS.DTO.Response;
 
 namespace CFS.BAL.Contracts;
 
@@ -7,7 +8,7 @@ public interface IUserService
 {
     Task<bool> CreateUserAsync(NewUserRequestDto newNewUser);
 
-    Task<bool> LoginAsync(LoginRequestDto userCredentials);
+    Task<BaseResponse<LoginResponseDto>> LoginAsync(LoginRequestDto userCredentials);
 
     Task<bool> UpdateUserAsync(int userId, EditUserRequestDto updatedNewUser);
 

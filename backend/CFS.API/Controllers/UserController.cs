@@ -50,9 +50,10 @@ namespace CFS.API.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequestDto userCredentials)
         {
             var result = await _userService.LoginAsync(userCredentials);
-            if(result)
-                return Ok("Usuario autenticado con éxito.");
-            return BadRequest("Contraseña o email incorrecto.");
+            if(result.IsSuccess)
+                return Ok(result);
+            return BadRequest(result);
+                
         }
 
         [HttpGet]

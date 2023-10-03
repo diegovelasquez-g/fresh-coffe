@@ -3,6 +3,7 @@ using CFS.BAL.Contracts;
 using CFS.DAL.Contracts;
 using CFS.DAL.Models;
 using CFS.DTO.Request;
+using CFS.DTO.Response;
 
 namespace CFS.BAL.Services;
 
@@ -10,13 +11,15 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasherService _passwordHasherService;
+    private readonly IJwtService _jwtService;
     private readonly IMapper _mapper;
 
-    public UserService(IUserRepository userRepository, IPasswordHasherService passwordHasherService, IMapper mapper)
+    public UserService(IUserRepository userRepository, IPasswordHasherService passwordHasherService, IMapper mapper, IJwtService jwtService)
     {
         _userRepository = userRepository;
         _passwordHasherService = passwordHasherService;
         _mapper = mapper;
+        _jwtService = jwtService;
     }
 
     public async Task<bool> CreateUserAsync(NewUserRequestDto newNewUser)
@@ -62,14 +65,39 @@ public class UserService : IUserService
         return isSuccess;
     }
 
-    public async Task<bool> LoginAsync(LoginRequestDto userCredentials)
+    public async Task<BaseResponse<LoginResponseDto>> LoginAsync(LoginRequestDto userCredentials)
     {
+        var response = new BaseResponse<LoginResponseDto>();
+
         var userToAuth = await _userRepository.GetUserByEmailAsync(userCredentials.Email);
         if (userToAuth is null)
-            return false;
+        {
+            response.IsSuccess = false;
+            response.Message = "No se ha encontrado el usuario.";
+            return response;
+        }
+
+        if (userToAuth.IsActive == false)
+        {
+            response.IsSuccess = false;
+            response.Message = "El usuario no está activo.";
+            return response;
+        }
 
         var isPasswordValid = _passwordHasherService.Verify(userToAuth.Password, userCredentials.Password);
-        return isPasswordValid;
+        if (!isPasswordValid)
+        {
+            response.IsSuccess = false;
+            response.Message = "Las credenciales no son válidas.";
+            return response;
+        }
+
+        var loginResponse = _mapper.Map<LoginResponseDto>(userToAuth);
+        loginResponse.Token = _jwtService.GenerateToken(userToAuth);
+        response.IsSuccess = true;
+        response.Data = loginResponse;
+        response.Message = "Se ha iniciado sesión.";
+        return response;
     }
 
     public async Task<List<User>> GetAllUsersAsync()

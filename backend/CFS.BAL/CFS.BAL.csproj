@@ -13,7 +13,12 @@
 
   <ItemGroup>
     <Folder Include="Contracts\" />
+    <Folder Include="Utilities\" />
     <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.32.3" />
   </ItemGroup>
 
 </Project>
